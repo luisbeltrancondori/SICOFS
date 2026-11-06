@@ -1,0 +1,19 @@
+{
+  "name": "salud-montero-sicofs",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sistema de Vigilancia y Gestión en Salud - GAM Montero",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev": "node -e \"const { spawn } = require('child_process'); spawn('npm', ['--prefix', 'backend', 'run', 'dev'], { stdio: 'inherit', shell: true }); spawn('npm', ['--prefix', 'frontend', 'run', 'dev'], { stdio: 'inherit', shell: true });\"",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend run start",
+    "cache:all": "npm --prefix backend run cache:all",
+    "cache:pacientes": "npm --prefix backend run cache:pacientes",
+    "cache:servicios": "npm --prefix backend run cache:servicios",
+    "cache:servicios:volumen": "npm --prefix backend run cache:servicios:volumen",
+    "cache:medicamentos": "npm --prefix backend run cache:medicamentos",
+    "cache:produccion": "npm --prefix backend run cache:produccion"
+  }
+}

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SICOFS - Gobierno Autónomo Municipal de Montero</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            heading: ['"Outfit"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="bg-[#f0f4f8] text-slate-800 antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    const MONTHS = [
+      { key: 'ene', label: 'Ene', fullName: 'Enero' },
+      { key: 'feb', label: 'Feb', fullName: 'Febrero' },
+      { key: 'mar', label: 'Mar', fullName: 'Marzo' },
+      { key: 'abr', label: 'Abr', fullName: 'Abril' },
+      { key: 'may', label: 'May', fullName: 'Mayo' },
+      { key: 'jun', label: 'Jun', fullName: 'Junio' },
+      { key: 'jul', label: 'Jul', fullName: 'Julio' },
+      { key: 'ago', label: 'Ago', fullName: 'Agosto' },
+      { key: 'sep', label: 'Sep', fullName: 'Septiembre' },
+      { key: 'oct', label: 'Oct', fullName: 'Octubre' },
+      { key: 'nov', label: 'Nov', fullName: 'Noviembre' },
+      { key: 'dic', label: 'Dic', fullName: 'Diciembre' },
+    ];
+
+    const SNIS_GROUPS = [
+      'Todas', 'Menor de 1 año', '1 a 4 años', '5 a 9 años', '10 a 19 años', '20 a 59 años', '60 años y más'
+    ];
+
+    const BASE_FACILITIES = [
+      {
+        id: 'fac-1',
+        name: 'ERNESTO CHE GUEVARA',
+        type: 'Centro de Salud con Internación',
+        level: '1er Nivel Ampliado',
+        district: 'Distrito 1 - Casco Viejo',
+        address: 'Av. Circunvalación Este esq. Calle Bolívar',
+        phone: '(+591) 3 922-2140',
+        activeDoctors: 18,
+        beds: 24,
+        femaleRatio: 0.612,
+        snisDistribution: { 'Menor de 1 año': 0.08, '1 a 4 años': 0.12, '5 a 9 años': 0.10, '10 a 19 años': 0.14, '20 a 59 años': 0.44, '60 años y más': 0.12 },
+        monthly: { ene: 4259, feb: 3979, mar: 5663, abr: 5638, may: 4730, jun: 4932, jul: 4949, ago: 3744, sep: 4084, oct: 4439, nov: 3955, dic: 3820 },
+        reportedTotal: 23447
+      },
+      {
+        id: 'fac-2',
+        name: 'HOSPITAL ALFONSO GUMUCIO',
+        type: 'Hospital de Segundo Nivel',
+        level: '2do Nivel Referencial',
+        district: 'Distrito 2 - Central',
+        address: 'Calle René Moreno #340',
+        phone: '(+591) 3 922-0199',
+        activeDoctors: 34,
+        beds: 85,
+        femaleRatio: 0.605,
+        snisDistribution: { 'Menor de 1 año': 0.09, '1 a 4 años': 0.14, '5 a 9 años': 0.11, '10 a 19 años': 0.13, '20 a 59 años': 0.41, '60 años y más': 0.12 },
+        monthly: { ene: 2801, feb: 2617, mar: 2654, abr: 2753, may: 2866, jun: 2538, jul: 2654, ago: 2348, sep: 2621, oct: 2657, nov: 2337, dic: 2484 },
+        reportedTotal: 19197
+      },
+      {
+        id: 'fac-3',
+        name: 'DIVINO NIÑO',
+        type: 'Centro de Salud Integral',
+        level: '1er Nivel',
+        district: 'Distrito 3 - El Paraíso',
+        address: 'Barrio Divino Niño, Calle 4',
+        phone: '(+591) 3 922-3850',
+        activeDoctors: 14,
+        beds: 12,
+        femaleRatio: 0.628,
+        snisDistribution: { 'Menor de 1 año': 0.11, '1 a 4 años': 0.15, '5 a 9 años': 0.12, '10 a 19 años': 0.12, '20 a 59 años': 0.38, '60 años y más': 0.12 },
+        monthly: { ene: 3246, feb: 3012, mar: 3512, abr: 3168, may: 3130, jun: 2844, jul: 3013, ago: 2615, sep: 2922, oct: 2969, nov: 2527, dic: 2419 },
+        reportedTotal: 14921
+      },
+      {
+        id: 'fac-4',
+        name: 'JUANA AZURDUY DE PADILLA',
+        type: 'Centro de Salud Integral',
+        level: '1er Nivel',
+        district: 'Distrito 4 - Warnes Norte',
+        address: 'Urb. Juana Azurduy, Av. Las Américas',
+        phone: '(+591) 3 922-4912',
+        activeDoctors: 12,
+        beds: 10,
+        femaleRatio: 0.615,
+        snisDistribution: { 'Menor de 1 año': 0.07, '1 a 4 años': 0.13, '5 a 9 años': 0.09, '10 a 19 años': 0.15, '20 a 59 años': 0.42, '60 años y más': 0.14 },
+        monthly: { ene: 2793, feb: 2808, mar: 3543, abr: 3395, may: 3309, jun: 3018, jul: 2529, ago: 2916, sep: 3227, oct: 3219, nov: 2629, dic: 2572 },
+        reportedTotal: 14441
+      },
+      {
+        id: 'fac-5',
+        name: 'CENTRO DE SALUD DR. VICTOR HUGO CASSAL BARBA',
+        type: 'Centro de Salud Integral',
+        level: '1er Nivel',
+        district: 'Distrito 5 - Guabirá Sur',
+        address: 'Av. Barrientos Ortuño s/n',
+        phone: '(+591) 3 922-5502',
+        activeDoctors: 10,
+        beds: 8,
+        femaleRatio: 0.598,
+        snisDistribution: { 'Menor de 1 año': 0.08, '1 a 4 años': 0.12, '5 a 9 años': 0.10, '10 a 19 años': 0.13, '20 a 59 años': 0.45, '60 años y más': 0.12 },
+        monthly: { ene: 2376, feb: 2905, mar: 2895, abr: 2488, may: 2291, jun: 2408, jul: 2441, ago: 2570, sep: 2469, oct: 2378, nov: 1926, dic: 2080 },
+        reportedTotal: 11475
+      },
+      {
+        id: 'fac-6',
+        name: 'LA SAGRADA FAMILIA',
+        type: 'Centro de Salud',
+        level: '1er Nivel',
+        district: 'Distrito 2 - La Florida',
+        address: 'Barrio Sagrada Familia, Mza 12',
+        phone: '(+591) 3 922-6110',
+        activeDoctors: 9,
+        beds: 6,
+        femaleRatio: 0.601,
+        snisDistribution: { 'Menor de 1 año': 0.08, '1 a 4 años': 0.11, '5 a 9 años': 0.10, '10 a 19 años': 0.12, '20 a 59 años': 0.44, '60 años y más': 0.15 },
+        monthly: { ene: 2206, feb: 2072, mar: 2414, abr: 2876, may: 2264, jun: 2377, jul: 2493, ago: 2317, sep: 2547, oct: 2454, nov: 1926, dic: 1994 },
+        reportedTotal: 11268
+      },
+      {
+        id: 'fac-7',
+        name: 'SAN MARTIN DE PORRES',
+        type: 'Centro de Salud',
+        level: '1er Nivel',
+        district: 'Distrito 3 - San Martín',
+        address: 'Calle San Martín #89',
+        phone: '(+591) 3 922-7201',
+        activeDoctors: 8,
+        beds: 6,
+        femaleRatio: 0.589,
+        snisDistribution: { 'Menor de 1 año': 0.07, '1 a 4 años': 0.10, '5 a 9 años': 0.11, '10 a 19 años': 0.14, '20 a 59 años': 0.43, '60 años y más': 0.15 },
+        monthly: { ene: 1978, feb: 1894, mar: 2351, abr: 2203, may: 1983, jun: 1852, jul: 2105, ago: 1752, sep: 1826, oct: 1840, nov: 1544, dic: 1711 },
+        reportedTotal: 9504
+      },
+      {
+        id: 'fac-8',
+        name: 'HOSPITAL RENE BALDERAS',
+        type: 'Hospital Básico Municipal',
+        level: '1er Nivel Especializado',
+        district: 'Distrito 1 - Sur',
+        address: 'Barrio René Balderas, Av. Petrolera',
+        phone: '(+591) 3 922-8334',
+        activeDoctors: 7,
+        beds: 10,
+        femaleRatio: 0.595,
+        snisDistribution: { 'Menor de 1 año': 0.06, '1 a 4 años': 0.12, '5 a 9 años': 0.08, '10 a 19 años': 0.13, '20 a 59 años': 0.48, '60 años y más': 0.13 },
+        monthly: { ene: 638, feb: 562, mar: 714, abr: 697, may: 707, jun: 573, jul: 541, ago: 562, sep: 643, oct: 545, nov: 565, dic: 518 },
+        reportedTotal: 4963
+      },
+      {
+        id: 'fac-9',
+        name: 'NARANJAL DON BOSCO',
+        type: 'Puesto de Salud Periférico',
+        level: '1er Nivel Básico',
+        district: 'Distrito Rural Naranjal',
+        address: 'Comunidad Naranjal Don Bosco km 5',
+        phone: '(+591) 3 922-9011',
+        activeDoctors: 4,
+        beds: 4,
+        femaleRatio: 0.618,
+        snisDistribution: { 'Menor de 1 año': 0.09, '1 a 4 años': 0.14, '5 a 9 años': 0.11, '10 a 19 años': 0.12, '20 a 59 años': 0.41, '60 años y más': 0.13 },
+        monthly: { ene: 389, feb: 371, mar: 326, abr: 386, may: 542, jun: 543, jul: 448, ago: 493, sep: 661, oct: 520, nov: 447, dic: 513 },
+        reportedTotal: 1987
+      },
+      {
+        id: 'fac-10',
+        name: 'VILLA COPACABANA',
+        type: 'Puesto de Salud Periférico',
+        level: '1er Nivel Básico',
+        district: 'Distrito 5 - Villa Copacabana',
+        address: 'Calle Copacabana esq. Litoral',
+        phone: '(+591) 3 922-9442',
+        activeDoctors: 3,
+        beds: 3,
+        femaleRatio: 0.608,
+        snisDistribution: { 'Menor de 1 año': 0.08, '1 a 4 años': 0.13, '5 a 9 años': 0.10, '10 a 19 años': 0.13, '20 a 59 años': 0.43, '60 años y más': 0.13 },
+        monthly: { ene: 404, feb: 357, mar: 433, abr: 445, may: 426, jun: 383, jul: 501, ago: 375, sep: 402, oct: 395, nov: 378, dic: 409 },
+        reportedTotal: 1576
+      }
+    ];
+
+    const formatNumber = (num) => {
+      if (!num && num !== 0) return '0';
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    function App() {
+      const [isDark, setIsDark] = useState(false);
+      const [filters, setFilters] = useState({
+        year: '2025',
+        month: 'Todas',
+        gender: 'Todas',
+        facility: 'Todas',
+        snisGroup: 'Todas'
+      });
+      const [searchTerm, setSearchTerm] = useState('');
+      const [activeFacility, setActiveFacility] = useState(null);
+
+      const barChartCanvas = useRef(null);
+      const donutChartCanvas = useRef(null);
+      const barChartInstance = useRef(null);
+      const donutChartInstance = useRef(null);
+
+      // Active filters count
+      const activeCount = useMemo(() => {
+        let count = 0;
+        if (filters.year !== '2025') count++;
+        if (filters.month !== 'Todas') count++;
+        if (filters.gender !== 'Todas') count++;
+        if (filters.facility !== 'Todas') count++;
+        if (filters.snisGroup !== 'Todas') count++;
+        return count;
+      }, [filters]);
+
+      const handleReset = () => {
+        setFilters({
+          year: '2025',
+          month: 'Todas',
+          gender: 'Todas',
+          facility: 'Todas',
+          snisGroup: 'Todas'
+        });
+      };
+
+      const yearMult = filters.year === '2025' ? 1.0 : filters.year === '2024' ? 0.94 : 0.88;
+
+      // Calculated facilities under filters
+      const allCalculated = useMemo(() => {
+        return BASE_FACILITIES.map(fac => {
+          const snisFactor = filters.snisGroup === 'Todas'
+            ? 1.0
+            : (fac.snisDistribution[filters.snisGroup] || 0.12);
+
+          let genderFactor = 1.0;
+          if (filters.gender === 'Femenino') {
+            genderFactor = fac.femaleRatio;
+          } else if (filters.gender === 'Masculino') {
+            genderFactor = 1 - fac.femaleRatio;
+          }
+
+          const adjustedMonthly = {};
+          let annualSum = 0;
+
+          MONTHS.forEach(m => {
+            const rawVal = fac.monthly[m.key] || 0;
+            const computed = Math.round(rawVal * yearMult * snisFactor * genderFactor);
+            adjustedMonthly[m.key] = computed;
+            annualSum += computed;
+          });
+
+          let activePeriodTotal = 0;
+          if (filters.month !== 'Todas') {
+            activePeriodTotal = adjustedMonthly[filters.month] || 0;
+          } else {
+            const baseTotal = fac.reportedTotal || annualSum;
+            activePeriodTotal = Math.round(baseTotal * yearMult * snisFactor * genderFactor);
+          }
+
+          return {
+            ...fac,
+            monthly: adjustedMonthly,
+            activePeriodTotal,
+            femaleCount: Math.round(activePeriodTotal * fac.femaleRatio),
+            maleCount: Math.round(activePeriodTotal * (1 - fac.femaleRatio))
+          };
+        });
+      }, [filters.year, filters.gender, filters.snisGroup, filters.month, yearMult]);
+
+      // Filtered facilities
+      const visibleFacilities = useMemo(() => {
+        if (filters.facility === 'Todas') return allCalculated;
+        return allCalculated.filter(f => f.name === filters.facility);
+      }, [allCalculated, filters.facility]);
+
+      // Monthly evolution data (Updates with Facility, Year, Gender, SNIS)
+      const monthlyEvolutionData = useMemo(() => {
+        return MONTHS.map(m => {
+          const sum = visibleFacilities.reduce((acc, f) => acc + (f.monthly[m.key] || 0), 0);
+          return {
+            month: m.label,
+            fullName: m.fullName,
+            key: m.key,
+            total: sum
+          };
+        });
+      }, [visibleFacilities]);
+
+      // Gender distribution data (Updates with Facility, Month, Year, SNIS, Gender)
+      const genderData = useMemo(() => {
+        let fSum = 0;
+        let mSum = 0;
+
+        visibleFacilities.forEach(f => {
+          if (filters.gender === 'Femenino') {
+            fSum += f.activePeriodTotal;
+          } else if (filters.gender === 'Masculino') {
+            mSum += f.activePeriodTotal;
+          } else {
+            fSum += f.femaleCount;
+            mSum += f.maleCount;
+          }
+        });
+
+        const total = fSum + mSum;
+        const fPct = total > 0 ? Number(((fSum / total) * 100).toFixed(2)) : 0;
+        const mPct = total > 0 ? Number(((mSum / total) * 100).toFixed(2)) : 0;
+
+        return { female: fSum, male: mSum, femalePct: fPct, malePct: mPct, total };
+      }, [visibleFacilities, filters.gender]);
+
+      // Top facilities data (Updates with Month, Year, Gender, SNIS)
+      const top10Facilities = useMemo(() => {
+        const sorted = [...allCalculated].sort((a, b) => b.activePeriodTotal - a.activePeriodTotal);
+        const top = sorted.slice(0, 10);
+        if (filters.facility !== 'Todas' && !top.some(f => f.name === filters.facility)) {
+          const found = sorted.find(f => f.name === filters.facility);
+          if (found) top.push(found);
+        }
+        return top;
+      }, [allCalculated, filters.facility]);
+
+      // Dynamic Totals
+      const totalPatients = useMemo(() => {
+        return visibleFacilities.reduce((sum, f) => sum + f.activePeriodTotal, 0);
+      }, [visibleFacilities]);
+
+      const monthlyAverage = useMemo(() => {
+        if (filters.month !== 'Todas') return totalPatients;
+        return Math.round(totalPatients / 12);
+      }, [totalPatients, filters.month]);
+
+      // Peak Month
+      const peakMonth = useMemo(() => {
+        let max = -1;
+        let mName = 'Marzo';
+        monthlyEvolutionData.forEach(d => {
+          if (d.total > max) {
+            max = d.total;
+            mName = d.fullName;
+          }
+        });
+        return { name: mName, total: max };
+      }, [monthlyEvolutionData]);
+
+      // Chart.js rendering for Monthly Evolution
+      useEffect(() => {
+        if (!barChartCanvas.current) return;
+        if (barChartInstance.current) {
+          barChartInstance.current.destroy();
+        }
+
+        const ctx = barChartCanvas.current.getContext('2d');
+        const labels = monthlyEvolutionData.map(d => d.month);
+        const dataValues = monthlyEvolutionData.map(d => d.total);
+        const maxVal = Math.max(...dataValues, 10);
+        const yMax = Math.ceil(maxVal * 1.18);
+
+        // Highlight selected month
+        const backgroundColors = monthlyEvolutionData.map(d => 
+          (filters.month && filters.month.toLowerCase() === d.key) ? '#0d9488' : '#0284c7'
+        );
+
+        barChartInstance.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Pacientes',
+              data: dataValues,
+              backgroundColor: backgroundColors,
+              borderRadius: 6,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                const mKey = monthlyEvolutionData[index].key;
+                setFilters(prev => ({
+                  ...prev,
+                  month: prev.month === mKey ? 'Todas' : mKey
+                }));
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                callbacks: {
+                  label: (ctx) => `Pacientes: ${formatNumber(ctx.raw)}`
+                }
+              }
+            },
+            scales: {
+              x: { grid: { display: false } },
+              y: {
+                max: yMax,
+                ticks: {
+                  callback: (val) => val >= 1000 ? `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}k` : val
+                },
+                grid: { color: '#f1f5f9' }
+              }
+            }
+          }
+        });
+
+        return () => {
+          if (barChartInstance.current) barChartInstance.current.destroy();
+        };
+      }, [monthlyEvolutionData, filters.month]);
+
+      // Chart.js rendering for Donut
+      useEffect(() => {
+        if (!donutChartCanvas.current) return;
+        if (donutChartInstance.current) {
+          donutChartInstance.current.destroy();
+        }
+
+        const ctx = donutChartCanvas.current.getContext('2d');
+        const chartData = [genderData.female, genderData.male];
+        const chartColors = ['#ff3b69', '#00a3e0'];
+
+        donutChartInstance.current = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Femenino', 'Masculino'],
+            datasets: [{
+              data: chartData,
+              backgroundColor: chartColors,
+              hoverBackgroundColor: ['#e11d48', '#0284c7'],
+              borderWidth: 3,
+              borderColor: '#ffffff',
+              cutout: '72%'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                callbacks: {
+                  label: (ctx) => `${ctx.label}: ${formatNumber(ctx.raw)} (${ctx.raw === genderData.female ? genderData.femalePct : genderData.malePct}%)`
+                }
+              }
+            }
+          }
+        });
+
+        return () => {
+          if (donutChartInstance.current) donutChartInstance.current.destroy();
+        };
+      }, [genderData]);
+
+      // Table search
+      const displayedFacilities = visibleFacilities.filter(f =>
+        f.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      // Monthly column totals
+      const monthlyColumnTotals = useMemo(() => {
+        const colTotals = {};
+        MONTHS.forEach(m => {
+          colTotals[m.key] = visibleFacilities.reduce((acc, f) => acc + (f.monthly[m.key] || 0), 0);
+        });
+        return colTotals;
+      }, [visibleFacilities]);
+
+      const downloadCSV = () => {
+        const headers = ['Establecimiento', ...MONTHS.map(m => m.label), 'Total'].join(';');
+        const rows = visibleFacilities.map(f => [
+          `"${f.name}"`,
+          ...MONTHS.map(m => f.monthly[m.key]),
+          f.activePeriodTotal
+        ].join(';'));
+        const csv = '\uFEFF' + [headers, ...rows].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pacientes_montero_${filters.year}.csv`;
+        a.click();
+      };
+
+      const topMax = Math.max(...top10Facilities.map(f => f.activePeriodTotal), 10);
+
+      return (
+        <div className={`min-h-screen ${isDark ? 'dark bg-slate-900 text-slate-100' : 'bg-[#f0f4f8] text-slate-800'}`}>
+          <div className="max-w-[1520px] mx-auto p-4 sm:p-6">
+            
+            {/* HEADER */}
+            <header className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#003844] via-[#045d6e] to-[#013543] text-white shadow-xl shadow-teal-950/20 border border-teal-700/40 mb-6 p-5 sm:p-6">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pb-4 border-b border-white/15">
+                {/* Official Montero Logo */}
+                <div className="flex items-center gap-3.5">
+                  <div className="bg-white rounded-xl p-1.5 shadow-md border border-white/30 flex items-center justify-center h-14 sm:h-16 transition-transform hover:scale-[1.02]">
+                    <img
+                      src="public/logo-montero.jpg"
+                      alt="Gobierno Autónomo Municipal Montero"
+                      className="h-full w-auto object-contain max-w-[210px] sm:max-w-[240px]"
+                    />
+                  </div>
+                  <div className="hidden sm:block text-left border-l border-white/20 pl-3.5">
+                    <span className="text-[10px] font-bold text-teal-300 tracking-wider uppercase block">Santa Cruz • Bolivia</span>
+                    <h2 className="text-base font-extrabold text-white leading-tight">SECRETARÍA MUNICIPAL DE SALUD</h2>
+                    <p className="text-[11px] text-teal-100 font-medium">Instancia Técnica de Salud</p>
+                  </div>
+                </div>
+
+                {/* Center Title (Desktop) */}
+                <div className="hidden xl:flex flex-col items-center text-center">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-teal-200/90 bg-teal-900/60 px-3 py-0.5 rounded-full border border-teal-500/30">
+                    SISTEMA DE GESTIÓN Y VIGILANCIA EPIDEMIOLÓGICA
+                  </span>
+                  <h1 className="text-lg font-bold tracking-tight text-white mt-1">
+                    GOBIERNO AUTÓNOMO MUNICIPAL DE MONTERO
+                  </h1>
+                </div>
+
+                {/* Official SUS Logo & Actions */}
+                <div className="flex items-center gap-3.5">
+                  <div className="bg-white rounded-xl p-1.5 shadow-md border border-white/30 flex items-center justify-center h-14 sm:h-16 transition-transform hover:scale-[1.02]">
+                    <img
+                      src="public/logo-sus.png"
+                      alt="SUS - Sistema Único de Salud"
+                      className="h-full w-auto object-contain max-w-[160px] sm:max-w-[185px]"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 no-print">
+                    <button onClick={downloadCSV} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white" title="Exportar CSV">
+                      📥
+                    </button>
+                    <button onClick={() => window.print()} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white" title="Imprimir">
+                      🖨️
+                    </button>
+                    <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white" title="Modo Oscuro">
+                      {isDark ? '☀️' : '🌙'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title Pill Card */}
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-[#014d5e] to-[#025b6e] rounded-xl px-5 py-3 border border-teal-400/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-lg">
+                    👥
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-extrabold text-white">Pacientes Atendidos</h2>
+                    <p className="text-xs text-teal-100 font-medium">Reporte resumido de pacientes atendidos por establecimiento de salud y gestión</p>
+                  </div>
+                </div>
+                <div className="text-xs font-semibold text-teal-200 bg-black/25 px-3 py-1.5 rounded-lg border border-teal-500/20">
+                  ● Red Montero: {visibleFacilities.length} Establecimientos Activos
+                </div>
+              </div>
+            </header>
+
+            {/* FILTERS TOOLBAR */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Gestión:</label>
+                  <select
+                    value={filters.year}
+                    onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl p-2.5"
+                  >
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Mes:</label>
+                  <select
+                    value={filters.month}
+                    onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl p-2.5"
+                  >
+                    <option value="Todas">Todas</option>
+                    {MONTHS.map(m => <option key={m.key} value={m.key}>{m.fullName}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Sexo:</label>
+                  <select
+                    value={filters.gender}
+                    onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value }))}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl p-2.5"
+                  >
+                    <option value="Todas">Todas</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Establecimiento:</label>
+                  <select
+                    value={filters.facility}
+                    onChange={(e) => setFilters(prev => ({ ...prev, facility: e.target.value }))}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl p-2.5 truncate"
+                  >
+                    <option value="Todas">Todas</option>
+                    {BASE_FACILITIES.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Grupo SNIS:</label>
+                  <select
+                    value={filters.snisGroup}
+                    onChange={(e) => setFilters(prev => ({ ...prev, snisGroup: e.target.value }))}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl p-2.5"
+                  >
+                    {SNIS_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {activeCount > 0 && (
+                <div className="mt-3 flex justify-end">
+                  <button onClick={handleReset} className="text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-200">
+                    ↺ Limpiar Filtros ({activeCount})
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* KPI CARDS (4 cards) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 border-l-[6px] border-l-sky-500 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase">TOTAL PACIENTES ATENDIDOS</span>
+                  <span className="p-2 bg-sky-50 dark:bg-sky-950 rounded-xl text-sky-600">👥</span>
+                </div>
+                <div className="text-3xl font-extrabold text-slate-800 dark:text-white mt-1">
+                  {formatNumber(totalPatients)}
+                </div>
+                <span className="text-xs font-bold text-slate-400">Pacientes</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 border-l-[6px] border-l-teal-500 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase">PROMEDIO MENSUAL</span>
+                  <span className="p-2 bg-teal-50 dark:bg-teal-950 rounded-xl text-teal-600">📅</span>
+                </div>
+                <div className="text-3xl font-extrabold text-slate-800 dark:text-white mt-1">
+                  {formatNumber(monthlyAverage)}
+                </div>
+                <span className="text-xs font-bold text-slate-400">Pacientes/mes</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 border-l-[6px] border-l-blue-600 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase">MES DE MAYOR ATENCIÓN</span>
+                  <span className="p-2 bg-blue-50 dark:bg-blue-950 rounded-xl text-blue-600">📈</span>
+                </div>
+                <div className="text-3xl font-extrabold text-slate-800 dark:text-white mt-1">
+                  {peakMonth.name}
+                </div>
+                <span className="text-xs font-bold text-slate-400">{formatNumber(peakMonth.total)} pacientes</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 border-l-[6px] border-l-purple-500 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase">COBERTURA DE RED</span>
+                  <span className="p-2 bg-purple-50 dark:bg-purple-950 rounded-xl text-purple-600">🏥</span>
+                </div>
+                <div className="text-3xl font-extrabold text-slate-800 dark:text-white mt-1">
+                  {visibleFacilities.length}
+                </div>
+                <span className="text-xs font-bold text-slate-400">Establecimientos activos</span>
+              </div>
+            </div>
+
+            {/* CHARTS GRID (3 columns) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
+              
+              {/* Chart 1: Evolución por mes */}
+              <div className="lg:col-span-5 bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 bg-sky-50 dark:bg-sky-950 rounded-xl text-sky-600">📊</span>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-white">Evolución de pacientes atendidos por mes</h3>
+                      <p className="text-[11px] text-slate-400">
+                        {filters.facility !== 'Todas' ? `Centro: ${filters.facility}` : 'Red Municipal'}
+                      </p>
+                    </div>
+                  </div>
+                  {filters.month !== 'Todas' && (
+                    <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                      Mes: {filters.month.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="h-64 relative">
+                  <canvas ref={barChartCanvas}></canvas>
+                </div>
+              </div>
+
+              {/* Chart 2: Donut por sexo */}
+              <div className="lg:col-span-3 bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 bg-pink-50 dark:bg-pink-950 rounded-xl text-pink-600">👥</span>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-white">Distribución de pacientes por sexo</h3>
+                      <p className="text-[11px] text-slate-400">
+                        {filters.facility !== 'Todas' ? filters.facility : 'Total general'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-52 relative flex items-center justify-center my-auto">
+                  <canvas ref={donutChartCanvas}></canvas>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-lg font-black text-slate-800 dark:text-white">{formatNumber(genderData.total)}</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Pacientes</span>
+                  </div>
+                  {/* Floating tags */}
+                  <div className="absolute top-1 left-1 text-[11px] font-bold text-sky-600">
+                    {genderData.malePct}% <span className="text-[9px] block text-slate-400">({formatNumber(genderData.male)})</span>
+                  </div>
+                  <div className="absolute bottom-1 right-1 text-[11px] font-bold text-pink-600 text-right">
+                    {genderData.femalePct}% <span className="text-[9px] block text-slate-400">({formatNumber(genderData.female)})</span>
+                  </div>
+                </div>
+                <div className="flex justify-center gap-4 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs font-bold">
+                  <button onClick={() => setFilters(p => ({ ...p, gender: p.gender === 'Femenino' ? 'Todas' : 'Femenino' }))} className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg ${filters.gender === 'Femenino' ? 'bg-pink-100' : ''}`}>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff3b69]"></span> Femenino
+                  </button>
+                  <button onClick={() => setFilters(p => ({ ...p, gender: p.gender === 'Masculino' ? 'Todas' : 'Masculino' }))} className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg ${filters.gender === 'Masculino' ? 'bg-sky-100' : ''}`}>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00a3e0]"></span> Masculino
+                  </button>
+                </div>
+              </div>
+
+              {/* Chart 3: Top 10 Establecimientos */}
+              <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 bg-indigo-50 dark:bg-indigo-950 rounded-xl text-indigo-600">🏆</span>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 dark:text-white">Top 10 establecimientos por pacientes</h3>
+                      <p className="text-[11px] text-slate-400">
+                        {filters.month !== 'Todas' ? `Mes: ${filters.month.toUpperCase()}` : 'Demanda Anual'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 flex flex-col justify-between space-y-1.5">
+                  {top10Facilities.map((f, i) => {
+                    const pct = Math.round((f.activePeriodTotal / topMax) * 100);
+                    const isSel = filters.facility === f.name;
+                    return (
+                      <div
+                        key={f.id}
+                        onClick={() => setFilters(prev => ({ ...prev, facility: prev.facility === f.name ? 'Todas' : f.name }))}
+                        className={`cursor-pointer group p-1.5 rounded-xl transition ${isSel ? 'bg-teal-50 dark:bg-teal-950/60 ring-2 ring-teal-500' : 'hover:bg-slate-50 dark:hover:bg-slate-750'}`}
+                      >
+                        <div className="flex justify-between text-[11px] mb-0.5">
+                          <span className={`font-bold truncate max-w-[210px] ${isSel ? 'text-teal-800 dark:text-teal-200 font-extrabold' : 'text-slate-700 dark:text-slate-300'}`}>
+                            {f.name}
+                          </span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-200">{formatNumber(f.activePeriodTotal)}</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full transition-all duration-500 ${isSel ? 'bg-teal-500' : 'bg-sky-500'}`} style={{ width: `${Math.max(2, pct)}%` }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* DATA TABLE */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-6">
+              <div className="p-4 bg-slate-50 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-teal-50 dark:bg-teal-950 rounded-xl text-teal-600">📋</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-white">Pacientes atendidos por establecimiento y mes</h3>
+                    <p className="text-[11px] text-slate-400">Matriz detallada mensual</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <input
+                    type="text"
+                    placeholder="Filtrar centro..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="text-xs px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 w-full sm:w-56"
+                  />
+                  <button onClick={downloadCSV} className="text-xs font-bold px-3 py-1.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700">
+                    Descargar
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e6378] text-white">
+                      <th className="py-2.5 px-3.5 font-bold uppercase text-[11px] min-w-[200px]">Establecimiento de Salud</th>
+                      {MONTHS.map(m => (
+                        <th key={m.key} className={`py-2.5 px-2 text-right font-bold text-[11px] ${filters.month === m.key ? 'bg-[#0b5163] text-amber-300' : ''}`}>
+                          {m.label}
+                        </th>
+                      ))}
+                      <th className="py-2.5 px-3 text-right font-black text-[11px] bg-[#0b5163]">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {displayedFacilities.map((fac, idx) => (
+                      <tr key={fac.id} onClick={() => setActiveFacility(fac)} className={`cursor-pointer hover:bg-teal-50/60 dark:hover:bg-slate-750 transition ${idx % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50/70 dark:bg-slate-800/60'}`}>
+                        <td className="py-2 px-3.5 font-bold text-slate-800 dark:text-slate-100">{fac.name}</td>
+                        {MONTHS.map(m => (
+                          <td key={m.key} className={`py-2 px-2 text-right tabular-nums ${filters.month === m.key ? 'bg-teal-100/40 font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
+                            {formatNumber(fac.monthly[m.key])}
+                          </td>
+                        ))}
+                        <td className="py-2 px-3 text-right font-extrabold text-slate-900 dark:text-white bg-slate-50/80 dark:bg-slate-850 tabular-nums">
+                          {formatNumber(fac.activePeriodTotal)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#0e6378] text-white font-extrabold text-xs">
+                      <td className="py-2.5 px-3.5 uppercase">Total</td>
+                      {MONTHS.map(m => (
+                        <td key={m.key} className={`py-2.5 px-2 text-right tabular-nums ${filters.month === m.key ? 'text-amber-300 bg-[#0b5163]' : ''}`}>
+                          {formatNumber(monthlyColumnTotals[m.key])}
+                        </td>
+                      ))}
+                      <td className="py-2.5 px-3 text-right font-black text-amber-300 bg-[#0b5163] text-sm tabular-nums">
+                        {formatNumber(totalPatients)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* FOOTER */}
+            <footer className="pt-3 pb-6 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <span className="font-bold text-teal-700 dark:text-teal-400 italic">❤️ Más salud, mejor futuro</span>
+              <span>Gobierno Autónomo Municipal de Montero • Instancia Técnica de Salud</span>
+              <span className="bg-white dark:bg-slate-800 px-3 py-1 rounded-xl border border-slate-200 dark:border-slate-700 font-semibold">
+                📅 Última actualización: <strong>07/10/2026</strong>
+              </span>
+            </footer>
+
+            {/* MODAL */}
+            {activeFacility && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setActiveFacility(null)}>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">{activeFacility.level}</span>
+                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">{activeFacility.name}</h3>
+                      <p className="text-xs text-slate-500">{activeFacility.district}</p>
+                    </div>
+                    <button onClick={() => setActiveFacility(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+                  </div>
+                  <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <p>📍 <strong>Dirección:</strong> {activeFacility.address}</p>
+                    <p>📞 <strong>Teléfono:</strong> {activeFacility.phone}</p>
+                    <p>👨‍⚕️ <strong>Médicos Activos:</strong> {activeFacility.activeDoctors}</p>
+                    <p>🛏️ <strong>Camas:</strong> {activeFacility.beds}</p>
+                    <p>📊 <strong>Total Pacientes Registrados:</strong> <span className="font-extrabold text-teal-600">{formatNumber(activeFacility.activePeriodTotal)}</span></p>
+                  </div>
+                  <button onClick={() => setActiveFacility(null)} className="mt-4 w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs">
+                    Cerrar Ficha
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

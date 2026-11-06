@@ -1,0 +1,188 @@
+import React from 'react';
+import { Calendar, ChevronDown, Layers, Building2, Stethoscope, RotateCcw, Activity } from 'lucide-react';
+
+const MONTHS = [
+  { value: 'all', label: 'Todas' },
+  { value: '1', label: 'Enero' },
+  { value: '2', label: 'Febrero' },
+  { value: '3', label: 'Marzo' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Mayo' },
+  { value: '6', label: 'Junio' },
+  { value: '7', label: 'Julio' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' },
+];
+
+export default function ServiciosFilterBar({
+  filters,
+  filterOptions,
+  onFilterChange,
+  onReset,
+}) {
+  const years = filterOptions?.years || [2023, 2024, 2025, 2026];
+  const tipos = filterOptions?.tipos || ['Todas'];
+  const grupos = filterOptions?.grupos || ['Todas'];
+  const niveles = filterOptions?.niveles || ['Todos', '1ER. NIVEL', '2DO. NIVEL'];
+  const establecimientos = filterOptions?.establecimientos || [];
+
+  const activeCount = [
+    filters.mes !== 'all',
+    filters.tipo !== 'all' && filters.tipo !== 'Todas',
+    filters.establecimiento !== 'all',
+    filters.grupoProc !== 'all' && filters.grupoProc !== 'Todas',
+    filters.nivel !== 'all' && filters.nivel !== 'Todos',
+  ].filter(Boolean).length;
+
+  return (
+    <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700/80 p-4 mb-5 transition-all">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        {/* Gestión */}
+        <div className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <Calendar className="w-3.5 h-3.5 text-sky-500" />
+            <span>Gestión</span>
+          </label>
+          <div className="relative">
+            <select
+              value={filters.year}
+              onChange={(e) => onFilterChange('year', e.target.value)}
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer shadow-xs"
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Mes */}
+        <div className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <Calendar className="w-3.5 h-3.5 text-teal-500" />
+            <span>Mes</span>
+          </label>
+          <div className="relative">
+            <select
+              value={filters.mes}
+              onChange={(e) => onFilterChange('mes', e.target.value)}
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer shadow-xs"
+            >
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Tipo Serv. */}
+        <div className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
+            <span>Tipo Serv.</span>
+          </label>
+          <div className="relative">
+            <select
+              value={filters.tipo}
+              onChange={(e) => onFilterChange('tipo', e.target.value)}
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer truncate shadow-xs"
+            >
+              {tipos.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Establecimiento */}
+        <div className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Establecimiento</span>
+          </label>
+          <div className="relative">
+            <select
+              value={filters.establecimiento}
+              onChange={(e) => onFilterChange('establecimiento', e.target.value)}
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer truncate shadow-xs"
+            >
+              <option value="all">Todas</option>
+              {establecimientos.map((e) => (
+                <option key={e.Id_Establecimiento} value={e.Id_Establecimiento}>
+                  {e.Des_Establecimiento}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Grupo Procedimiento */}
+        <div className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <Layers className="w-3.5 h-3.5 text-purple-500" />
+            <span>Grupo Procedimiento</span>
+          </label>
+          <div className="relative">
+            <select
+              value={filters.grupoProc}
+              onChange={(e) => onFilterChange('grupoProc', e.target.value)}
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer truncate shadow-xs"
+            >
+              {grupos.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Nivel de Atención */}
+        <div className="relative flex flex-col justify-between">
+          <div>
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              <Activity className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Nivel</span>
+            </label>
+            <div className="relative">
+              <select
+                value={filters.nivel}
+                onChange={(e) => onFilterChange('nivel', e.target.value)}
+                className="w-full appearance-none bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-xl py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all cursor-pointer shadow-xs"
+              >
+                {niveles.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Active filter count & reset */}
+      {activeCount > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+          <span className="text-xs text-sky-700 dark:text-sky-300 font-semibold bg-sky-50 dark:bg-sky-950/40 px-3 py-1 rounded-full border border-sky-200 dark:border-sky-800">
+            Filtros activos: {activeCount}
+          </span>
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:text-rose-400 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 transition"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Limpiar filtros</span>
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}

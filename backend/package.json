@@ -1,0 +1,22 @@
+{
+  "name": "salud-montero-backend",
+  "version": "1.0.0",
+  "description": "Backend API Server y procesamiento de datos para Salud Montero - Sistema SICOFS",
+  "main": "index.cjs",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env index.cjs",
+    "dev": "node --env-file-if-exists=.env index.cjs",
+    "cache:all": "node scripts/generate_cache.cjs && node scripts/generate_cache_servicios.cjs && node scripts/generate_cache_servicios_volumen.cjs && node scripts/generate_cache_medicamentos.cjs && node scripts/generate_cache_produccion.cjs",
+    "cache:pacientes": "node scripts/generate_cache.cjs",
+    "cache:servicios": "node scripts/generate_cache_servicios.cjs && node scripts/generate_cache_servicios_volumen.cjs",
+    "cache:servicios:volumen": "node scripts/generate_cache_servicios_volumen.cjs",
+    "cache:medicamentos": "node scripts/generate_cache_medicamentos.cjs",
+    "cache:produccion": "node scripts/generate_cache_produccion.cjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mssql": "^12.7.4",
+    "xlsx": "^0.18.5"
+  }
+}
