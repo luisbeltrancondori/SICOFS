@@ -1,0 +1,30 @@
+[
+  {
+    "email": "admin@sicofs.gob.bo",
+    "password": "Admin123!",
+    "nombre": "Administrador SICOFS",
+    "rol": "administrador",
+    "estado": "aprobado"
+  },
+  {
+    "email": "usuario@sicofs.gob.bo",
+    "password": "Usuario123!",
+    "nombre": "Usuario de Prueba",
+    "rol": "usuario",
+    "estado": "aprobado"
+  },
+  {
+    "nombre": "VERONICA ARANCIBIA CABRERA",
+    "email": "veritaveronicaarancibiacabrera@gmail.com",
+    "password": "VEriTA97",
+    "rol": "usuario",
+    "estado": "aprobado"
+  },
+  {
+    "nombre": "Roxana Flores Terrazas",
+    "email": "floresterrazasroxana@gmail.com",
+    "password": "FLORES",
+    "rol": "usuario",
+    "estado": "aprobado"
+  }
+]

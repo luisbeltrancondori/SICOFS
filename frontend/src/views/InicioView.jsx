@@ -2,6 +2,7 @@ import React from 'react';
 import { Stethoscope, Users, Building2, ShieldCheck, ArrowRight, Activity, Calendar, Pill, BarChart3, Receipt } from 'lucide-react';
 import logoMontero from '../assets/logo-montero.jpg';
 import logoSus from '../assets/logo-sus.png';
+import VisitCounter from '../components/VisitCounter';
 
 export default function InicioView({ onNavigate }) {
   return (
@@ -202,6 +203,10 @@ export default function InicioView({ onNavigate }) {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </div>
           </a>
+        </div>
+
+        <div className="mb-6 flex justify-end">
+          <VisitCounter />
         </div>
 
         {/* Network Info Pills */}

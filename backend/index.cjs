@@ -7,6 +7,7 @@ const medicamentosRouter = require('./routes/medicamentos.cjs');
 const produccionRouter = require('./routes/produccion.cjs');
 const reportesRouter = require('./routes/reportes.cjs');
 const cobrosRouter = require('./routes/cobros-excel.cjs');
+const localDataRouter = require('./routes/local-data.cjs');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use('/api/medicamentos', medicamentosRouter);
 app.use('/api/produccion', produccionRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/cobros', cobrosRouter);
+app.use('/api', localDataRouter);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 

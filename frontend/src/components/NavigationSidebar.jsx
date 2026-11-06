@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, Stethoscope, Users, Pill, BarChart3, FileText, ClipboardList, ChevronLeft, ChevronRight, HandCoins } from 'lucide-react';
+import { Home, Stethoscope, Users, Pill, BarChart3, FileText, ClipboardList, ChevronLeft, ChevronRight, HandCoins, LogOut, UserCheck } from 'lucide-react';
 import logoMontero from '../assets/logo-montero.jpg';
 
-export default function NavigationSidebar({ activeTab, onTabChange, isCollapsed, setIsCollapsed }) {
+export default function NavigationSidebar({ activeTab, onTabChange, isCollapsed, setIsCollapsed, currentUser, onLogout }) {
   const menuItems = [
     {
       id: 'inicio',
@@ -47,6 +47,11 @@ export default function NavigationSidebar({ activeTab, onTabChange, isCollapsed,
       label: 'COBROS INTERMUNICIPALES',
       icon: HandCoins,
     },
+    ...(currentUser?.rol === 'administrador' ? [{
+      id: 'usuarios-pendientes',
+      label: 'Aprobaciones de Usuarios',
+      icon: UserCheck,
+    }] : []),
   ];
 
   return (
@@ -156,10 +161,19 @@ export default function NavigationSidebar({ activeTab, onTabChange, isCollapsed,
       {/* Bottom Footer Widget */}
       <div className="p-3 border-t border-teal-800/40 bg-[#002733]/60 text-center">
         {!isCollapsed ? (
-          <div className="text-[10px] text-teal-300/70 font-medium leading-relaxed">
-            <span className="block font-bold text-white text-[11px]">Sistema SICOFS</span>
-            Gobierno Autónomo Municipal de Montero
-          </div>
+          <>
+            <div className="mb-2 truncate text-[10px] font-bold text-teal-100">{currentUser?.nombre || currentUser?.email}</div>
+            <button
+              onClick={onLogout}
+              className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/15 px-3 py-2 text-xs font-black text-red-100 transition hover:bg-red-500/25"
+            >
+              <LogOut className="h-4 w-4" /> Cerrar sesión
+            </button>
+            <div className="text-[10px] text-teal-300/70 font-medium leading-relaxed">
+              <span className="block font-bold text-white text-[11px]">Sistema SICOFS</span>
+              Gobierno Autónomo Municipal de Montero
+            </div>
+          </>
         ) : (
           <button
             onClick={() => setIsCollapsed(false)}

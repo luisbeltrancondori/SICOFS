@@ -8,8 +8,17 @@ import MedicamentosDashboard from './views/MedicamentosDashboard';
 import ProduccionDashboard from './views/ProduccionDashboard';
 import ReportesDashboard from './views/ReportesDashboard';
 import CobrosExcelDashboard from './views/CobrosExcelDashboard';
+import Login from './components/Login';
+import UserApprovals from './components/UserApprovals';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('sicofs_user') || 'null');
+    } catch {
+      return null;
+    }
+  });
   const [activeTab, setActiveTab] = useState(() => (
     window.location.pathname === '/cobros-intermunicipales'
       ? 'cobros-intermunicipales'
@@ -37,6 +46,16 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('sicofs_user');
+    setCurrentUser(null);
+    setActiveTab('inicio');
+  };
+
+  if (!currentUser) {
+    return <Login onLogin={setCurrentUser} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
       {/* Lateral Navigation Sidebar */}
@@ -45,6 +64,8 @@ export default function App() {
         onTabChange={handleTabChange}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -83,6 +104,9 @@ export default function App() {
 
         {activeTab === 'cobros-intermunicipales' && (
           <CobrosExcelDashboard />
+        )}
+        {activeTab === 'usuarios-pendientes' && currentUser.rol === 'administrador' && (
+          <UserApprovals currentUser={currentUser} />
         )}
       </main>
     </div>
