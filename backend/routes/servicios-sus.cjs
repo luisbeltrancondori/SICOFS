@@ -19,6 +19,11 @@ function addFilters(request, query) {
     conditions.push('(Cod_Servicio LIKE @Search OR Des_Servicio LIKE @Search)');
   }
 
+  const publicationFilter = String(query.idServicioPub || '').trim();
+  if (!publicationFilter || publicationFilter === 'Todos') {
+    conditions.push(`Id_ServicioPublicado = (SELECT MAX(Id_ServicioPublicado) FROM BDCatalogos.dbo.v_Servicio)`);
+  }
+
   for (const [key, column] of Object.entries(FILTER_COLUMNS)) {
     const value = query[key];
     if (!value || value === 'Todos') continue;
@@ -49,12 +54,16 @@ router.get('/filters', async (req, res) => {
         SELECT DISTINCT ${column} AS value
         FROM BDCatalogos.dbo.v_Servicio
         WHERE ${column} IS NOT NULL
-        ORDER BY ${column}
+        ORDER BY ${column}${key === 'idServicioPub' ? ' DESC' : ''}
       `);
       return [key, result.recordset.map((row) => row.value)];
     }));
 
-    res.json({ options: Object.fromEntries(entries) });
+    const publicationValues = entries.find(([key]) => key === 'idServicioPub')?.[1] || [];
+    res.json({
+      options: Object.fromEntries(entries),
+      latestPublication: publicationValues.length > 0 ? Number(publicationValues[0]) : null,
+    });
   } catch (err) {
     console.error('[Servicios SUS] Error al cargar filtros:', err.message);
     res.status(500).json({
@@ -86,7 +95,7 @@ router.get('/', async (req, res) => {
         Id_ServicioPublicado AS idServicioPub
       FROM BDCatalogos.dbo.v_Servicio
       ${whereClause}
-      ORDER BY Id_ServicioPublicado, Cod_Servicio
+      ORDER BY Id_ServicioPublicado DESC, Cod_Servicio
       `;
     } else {
       request.input('FirstRow', sql.Int, (page - 1) * pageSize + 1);
@@ -104,7 +113,7 @@ router.get('/', async (req, res) => {
             Id_ServicioPublicado AS idServicioPub,
             COUNT(*) OVER() AS totalCount,
             AVG(CAST(Costo AS FLOAT)) OVER() AS averageCost,
-            ROW_NUMBER() OVER (ORDER BY Id_ServicioPublicado, Cod_Servicio) AS rowNumber
+            ROW_NUMBER() OVER (ORDER BY Id_ServicioPublicado DESC, Cod_Servicio) AS rowNumber
           FROM BDCatalogos.dbo.v_Servicio
           ${whereClause}
         )

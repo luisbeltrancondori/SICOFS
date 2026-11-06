@@ -58,6 +58,7 @@ export default function ServiciosSUSView() {
     gruposServicio: 0,
   });
   const [filterOptions, setFilterOptions] = useState({});
+  const [latestPublication, setLatestPublication] = useState(null);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(() =>
     Object.fromEntries(FILTERS.map(({ key }) => [key, ALL]))
@@ -74,7 +75,15 @@ export default function ServiciosSUSView() {
       try {
         const response = await fetch('/api/servicios-sus/filters', { signal: controller.signal });
         const payload = await readJsonResponse(response);
-        setFilterOptions(payload.options || {});
+        const options = payload.options || {};
+        setFilterOptions(options);
+        const latest = payload.latestPublication;
+        if (latest != null) {
+          setLatestPublication(latest);
+          setFilters((previous) => previous.idServicioPub === ALL
+            ? { ...previous, idServicioPub: String(latest) }
+            : previous);
+        }
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error('Error al cargar los filtros de Servicios SUS:', err);
@@ -146,7 +155,7 @@ export default function ServiciosSUSView() {
 
   const resetFilters = () => {
     setSearch('');
-    setFilters(Object.fromEntries(FILTERS.map(({ key }) => [key, ALL])));
+    setFilters(Object.fromEntries(FILTERS.map(({ key }) => [key, key === 'idServicioPub' && latestPublication != null ? String(latestPublication) : ALL])));
   };
 
   const exportExcel = async () => {
